@@ -12,7 +12,7 @@ shinyServer(function(input, output) {
         #    inFile$type
         #})
         
-        if (inFile$type =="text/plain"){
+        else if (inFile$type =="text/plain"){
             qvdata=read.table(inFile$datapath,skip=3,sep="|")
             qvdata=qvdata[,c(2:4,7)]
             qvdata=data.frame(lapply(qvdata, as.character), stringsAsFactors=FALSE)
@@ -70,7 +70,7 @@ shinyServer(function(input, output) {
       
       
       ## MODEL1 ##  Begin
-      
+      withProgress(message = 'Making plot', value = 0, {
       Nit=20000
       dataset=15
       
@@ -145,6 +145,8 @@ shinyServer(function(input, output) {
       
       
       for(j in 1:4){
+          incProgress(1/4, detail = paste("Doing part", j))
+          
           t_old=t_m
           t=matrix(0,nrow=4,ncol=Nit)
           yp=matrix(0,nrow=nrow(wq),ncol=Nit)
@@ -161,6 +163,7 @@ shinyServer(function(input, output) {
           D_old=Dens$D
           
           for(i in 1:Nit){
+              
               t_new=t_old+solve(t(LH),as.matrix(rnorm(2,0,1)))
               
               Densnew<-Denseval11(t_new,RC)
@@ -208,6 +211,7 @@ shinyServer(function(input, output) {
               ypo4=ypo
               D4=D
           }
+          
       }
       
       
@@ -223,10 +227,8 @@ shinyServer(function(input, output) {
       
      return(list("RC"=RC,"ypo1"=ypo1,"ypo2"=ypo2,"ypo3"=ypo3,"ypo4"=ypo4,"l_m"=l_m,"t_m"=t_m,"wq"=wq,"fit"=X_m%*%mu))
       ## MODEL 1 ## End
+      })
     })
-#     output$text<-renderPrint({
-#         model1()$RC
-#     })
     
     plotratingcurve <- eventReactive(input$go,{
         plotlist=model1()
@@ -289,6 +291,9 @@ shinyServer(function(input, output) {
         } 
         
         
+    })
+    output$text <- renderPrint({
+        plotlist=model1()
     })
     
     output$plots <- renderUI({

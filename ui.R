@@ -20,7 +20,7 @@ shinyUI(fluidPage(
         #list of outputs
         mainPanel(
             uiOutput('plots'),
-            #textOutput('text'),
+            textOutput('text'),
             conditionalPanel(condition="'tafla' %in% input$checkbox",tableOutput('tafla'))
            
             
