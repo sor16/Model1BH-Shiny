@@ -1,5 +1,6 @@
 library(shiny)
 library(ggplot2)
+library(RCmodels)
 shinyServer(function(input, output) {
     
     model1<-reactive({
@@ -36,39 +37,6 @@ shinyServer(function(input, output) {
             qvdata$H=100*qvdata$H
             wq=as.matrix(qvdata[,2:1])
         }
-        
-      ## DENSEVAL11 ## Begin
-      
-      Denseval11 <- function(th,RC){
-          
-          #hugsanlega onnur breytunofn
-          l=log(RC$w_tild+exp(th[1]))
-          X=cbind(rep(1,length(l)),l)
-          
-          L=t(chol(RC$Sig_xinv + (t(X) %*% X)/exp(th[2])))
-          
-          q=solve(L,(RC$Sinvmu+t(X)%*%RC$y/exp(th[2])))
-          #Solvi end
-          
-          #Solvi begin 27.mai
-          p=0.5*sum(q^2)+log(L[1,1])+log(L[2,2])- 
-              0.5*sum(RC$y^2)/exp(th[2])-RC$n*th[2]/2 +
-              th[1]-exp(th[1])*RC$mu_c-th[2]
-          
-          x=solve(t(L),(q+as.matrix(rnorm(2))))
-          
-          yp=X %*% x
-          
-          ypo=yp+as.matrix(rnorm(RC$n,sd=sqrt(exp(th[2]))))
-          
-          D=-2*sum(log(dlnorm(exp(RC$y),X%*%x,sqrt(exp(th[2])))))
-          
-          return(list("pmin"=-p,"p"=p,"x"=x,"yp"=yp,"ypo"=ypo,"D"=D))
-      }
-      
-      ## DENSEVAL11 ## End
-      
-      
       ## MODEL1 ##  Begin
       withProgress(message = 'Making plot', value = 0, {
       Nit=20000
@@ -108,7 +76,7 @@ shinyServer(function(input, output) {
       RC$n=length(RC$y);
       
       
-      Dens <- function(th){ Denseval11(th,RC)$pmin}
+      Dens <- function(th){ Densevalm11(th,RC)$pmin}
       Densmin=optim(par=c(0,0),Dens,hessian=TRUE)
       t_m=as.matrix(Densmin$par)
       H=Densmin$hessian
@@ -155,7 +123,7 @@ shinyServer(function(input, output) {
           D=c()
           
           
-          Dens<-Denseval11(t_old,RC)
+          Dens<-Densevalm11(t_old,RC)
           p_old=Dens$p
           x_old=Dens$x
           yp_old=Dens$yp
@@ -166,7 +134,7 @@ shinyServer(function(input, output) {
               
               t_new=t_old+solve(t(LH),as.matrix(rnorm(2,0,1)))
               
-              Densnew<-Denseval11(t_new,RC)
+              Densnew<-Densevalm11(t_new,RC)
               p_new=Densnew$p
               x_new=Densnew$x
               yp_new=Densnew$yp
