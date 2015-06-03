@@ -1,12 +1,14 @@
 library(shiny)
-library(ggplot2)
-Sys.setlocale("LC_ALL", "is_IS")
 
 shinyUI(fluidPage(
-    titlePanel('Linear Regression'),
+    titlePanel('Rating curve'),
     sidebarLayout(
         sidebarPanel(
             fileInput('file1', 'Choose file'),
+            br(),
+            selectInput("select", label = "Select country", choices = list("Iceland" = 'Iceland'), 
+                        selected = 'Iceland'),
+            br(),
             checkboxGroupInput("checkbox", label = "Output",choices=list("Raunskali"="raun","Lograskali"="log",
                                                                          "Leifarit a raunskala"="leifraun","Leifarit a logskala"="leiflog", "Tafla"="tafla") ,selected = NULL),
             actionButton("go", label="Submit"),
@@ -20,7 +22,7 @@ shinyUI(fluidPage(
         #list of outputs
         mainPanel(
             uiOutput('plots'),
-            textOutput('text'),
+            textOutput('callreactive'),
             conditionalPanel(condition="'tafla' %in% input$checkbox",tableOutput('tafla'))
            
             
