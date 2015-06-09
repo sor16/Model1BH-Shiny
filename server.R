@@ -1,6 +1,7 @@
 library(shiny)
 library(ggplot2)
 library(RCmodels)
+library(googleVis)
 shinyServer(function(input, output) {
     
     model1<-reactive({
@@ -14,8 +15,10 @@ shinyServer(function(input, output) {
             qvdata=read.table(inFile$datapath,skip=3,sep="|")
             qvdata=qvdata[,c(2:4,7)]
             qvdata=data.frame(lapply(qvdata, as.character), stringsAsFactors=FALSE)
-            qvdata[,3:4]=apply(qvdata[,c(3,4)],2, function(x) as.numeric(gsub(",",".",x)))
-            names(qvdata)=c("Date","Time","Q","H")
+            qvdata[,3:4]=apply(qvdata[,3:4],2, function(x) as.numeric(gsub(",",".",x)))
+            qvdata[,3:4]=qvdata[,4:3]
+            names(qvdata)=c("Date","Time","W","Q")
+            qvdata$Date=as.Date(gsub("\\.","-",qvdata$Date),"%d-%m-%Y")
             wq=as.matrix(qvdata[,3:4])
             
         }
@@ -24,14 +27,16 @@ shinyServer(function(input, output) {
             qvdata=qvdata[,c(1:3,6)]
             qvdata=data.frame(lapply(qvdata, as.character), stringsAsFactors=FALSE)
             qvdata[,3:4]=apply(qvdata[,c(3,4)],2, function(x) as.numeric(gsub(",",".",x)))
-            names(qvdata)=c("Date","Time","Q","H")
+            qvdata[,3:4]=qvdata[,4:3]
+            names(qvdata)=c("Date","Time","W","Q")
+            qvdata$Date=as.Date(gsub("\\.","-",qvdata$Date),"%d-%m-%Y")
             wq=as.matrix(qvdata[,3:4])
             
         }
         else {
             qvdata=read.table(inFile$datapath)
-            names(qvdata)=c("H","Q")
-            qvdata$H=100*qvdata$H
+            names(qvdata)=c("W","Q")
+            qvdata$W=100*qvdata$W
             wq=as.matrix(qvdata[,2:1])
         }
       ## MODEL1 ##  Begin
@@ -40,9 +45,9 @@ shinyServer(function(input, output) {
     
       RC=priors(input$select)
       
-      RC$y=as.matrix(log(wq[,1]));
-      RC$w=0.01*wq[,2]; #to meters 
-      RC$w_tild=RC$w-RC$w[1];
+      RC$y=as.matrix(log(wq[,2]));
+      RC$w=0.01*wq[,1]; #to meters 
+      RC$w_tild=RC$w-min(RC$w);
       RC$n=length(RC$y);
       
       
@@ -164,10 +169,11 @@ shinyServer(function(input, output) {
       #c(Dhat, Davg, DIC, pd, B) #afhverju thessi vigur?
      
       
-     return(list("RC"=RC,"ypo1"=ypo1,"ypo2"=ypo2,"ypo3"=ypo3,"ypo4"=ypo4,"l_m"=l_m,"t_m"=t_m,"wq"=wq,"fit"=X_m%*%mu))
+     return(list("RC"=RC,"ypo1"=ypo1,"ypo2"=ypo2,"ypo3"=ypo3,"ypo4"=ypo4,"l_m"=l_m,"t_m"=t_m,"qvdata"=qvdata,"fit"=X_m%*%mu))
       ## MODEL 1 ## End
       })
-    })
+    })    
+    
     
     plotratingcurve <- eventReactive(input$go,{
         plotlist=model1()
@@ -177,11 +183,17 @@ shinyServer(function(input, output) {
         rcleifraun=NULL
         tafla=NULL
         outputlist=list()
-        if(!is.null(plotlist$wq)) {
+        if(!is.null(plotlist$qvdata)) {
             
-            data=data.frame(W=plotlist$RC$w, Q=plotlist$RC$y)
+            data=data.frame(W=plotlist$RC$w,Q=plotlist$RC$y)
             data$l_m=plotlist$l_m
             data$fit=plotlist$fit
+            
+            #simdata=data.frame(fit=as.matrix(seq(min(data$fit),max(data$fit),length.out=1000)))
+            #simdata$fitl_m = as.matrix(seq(min(data$l_m),max(data$l_m),length.out=1000))
+            #simdata$Wfit=seq(min(log(data$W)),max(log(data$W)),length.out=1000)
+            data$c_hat=rep(min(data$W)-exp(plotlist$t_m[1,]),length(data$l_m))
+            #simdata$Wfit = exp(simdata$fitl_m) + c_hat
             seq=seq(2000,20000,5)
             quantypo1=plotlist$ypo1[,seq]
             quantypo2=plotlist$ypo2[,seq]
@@ -194,37 +206,43 @@ shinyServer(function(input, output) {
             
             
             if ("raun" %in% input$checkbox){
-                rcraun=ggplot(data)+theme_bw()+geom_point(aes(exp(Q),W))+geom_line(aes(exp(fit),W))+geom_line(aes(exp(lower),W),linetype="dashed")+
-                    geom_line(aes(exp(upper),W),linetype="dashed")
+                rcraun=ggplot(data)+theme_bw()+geom_point(aes(exp(Q),W))+geom_line(aes(exp(fit),W))+
+                    geom_line(aes(exp(lower),W),linetype="dashed")+geom_line(aes(exp(upper),W),linetype="dashed")
                 outputlist$rcraun=rcraun
             }
             if("log" %in% input$checkbox){
-                rclog=ggplot(data)+geom_line(mapping=aes(l_m,fit))+theme_bw()+geom_point(mapping=aes(l_m,Q))+geom_line(mapping=aes(l_m,lower),linetype="dashed")+
-                    geom_line(mapping=aes(l_m,upper),linetype="dashed")
+                rclog=ggplot(data)+geom_line(mapping=aes(fit,l_m))+theme_bw()+geom_point(mapping=aes(Q,l_m))+geom_line(mapping=aes(lower,l_m),linetype="dashed")+
+                    geom_line(mapping=aes(upper,l_m),linetype="dashed")
+                
                 outputlist$rclog=rclog
             }
             
             
             if ("leifraun" %in% input$checkbox){
-                data$residraun=(exp(plotlist$RC$y)-exp(plotlist$RC$fit))/sqrt(exp(plotlist$t_m[2,]))
-                rcleifraun=ggplot(data)+geom_point(aes(exp(l_m),residraun),color="red")+theme_bw()+geom_abline(intercept = 0, slope = 0)+
-                    geom_abline(intercept = exp(2), slope = 0,linetype="dashed")+geom_abline(intercept = -exp(2), slope = 0,linetype="dashed")+
-                    ylim(-8,8)+ylab(expression(epsilon[i]))+xlim(0,4)
+                data$residraun=(exp(data$Q)-exp(data$fit))
+                rcleifraun=ggplot(data)+geom_point(aes(exp(l_m)+c_hat,residraun),color="red")+theme_bw()+geom_abline(intercept = 0, slope = 0)+
+                    ylab(expression(epsilon[i]))
                 
                 outputlist$rcleifraun=rcleifraun
             } 
             if("leiflog" %in% input$checkbox){
-                data$residlog=(plotlist$RC$y-plotlist$RC$fit)/sqrt(exp(plotlist$t_m[2,]))
-                
+                data$residlog=(data$Q-data$fit)/sqrt(exp(plotlist$t_m[2,]))
                 rcleiflog=ggplot(data)+geom_point(aes(l_m,residlog),color="red")+theme_bw()+geom_abline(intercept = 0, slope = 0)+
                     geom_abline(intercept = 2, slope = 0,linetype="dashed")+geom_abline(intercept = -2, slope = 0,linetype="dashed")+ylim(-4,4)+
                     ylab(expression(epsilon[i]))
+                
+                
                 outputlist$rcleiflog=rcleiflog
             }
-            if("tafla" %in% input$checkbox) {
-                tafla=as.data.frame(plotlist$wq)
-                outputlist$tafla=tafla
-            }
+            
+            tafla=plotlist$qvdata
+            tafla$W=tafla$W
+            tafla$Qfit=as.numeric(format(round(as.vector(exp(plotlist$fit)),3)))
+            tafla$lower=as.numeric(format(round(exp(data$lower),3)))
+            tafla$upper=as.numeric(format(round(exp(data$upper),3)))
+            names(tafla)=c("Date","Time","W","Q", "Q fit","Lower", "Upper")
+            outputlist$tafla=tafla
+            
             
             return(outputlist)
         } 
@@ -237,7 +255,7 @@ shinyServer(function(input, output) {
     
     output$plots <- renderUI({
         if(length(plotratingcurve())!=0){
-            plot_output_list <- lapply(1:length(plotratingcurve()), function(i) {
+            plot_output_list <- lapply(1:(length(plotratingcurve())-1), function(i) {
                 plotname=paste("plot", i, sep="")
                 plotOutput(plotname)
             })
@@ -260,31 +278,36 @@ shinyServer(function(input, output) {
     output$plot1<-renderPlot({
         if(length(plotratingcurve())!=0)
             plotratingcurve()[[1]]
-    })
+    },height=400,width=600)
     output$plot2<-renderPlot({
         if(length(plotratingcurve()) >= 2)
             plotratingcurve()[[2]]   
-    })
+    },height=400,width=600)
     output$plot3<-renderPlot({
         if(length(plotratingcurve())>=3)
             plotratingcurve()[[3]]    
-    })
+    },height=400,width=600)
     output$plot4<-renderPlot({
         if(length(plotratingcurve())>=4)
             plotratingcurve()[[4]]     
-    })
-    output$tafla <- renderTable({
-        if('tafla' %in% input$checkbox)
-            plotratingcurve()$tafla
+    },height=400,width=600)
+    output$tafla <- renderGvis({
+    #       if(!is.null(plotratingcurve()$tafla))
+                table=as.data.frame(plotratingcurve()$tafla)
+                gvisTable(table,options=list(
+                    page='enable',
+                    pageSize=30,
+                    width=550
+                ))
+                
         
-        
     })
-    
+
+
+
     output$downloadReport <- downloadHandler(
         filename = function() {
-            paste(input$file1$name, sep=".", switch(
-                input$format, PDF = 'pdf', HTML = 'html', Word = 'docx'
-            ))
+            paste(input$file1$name, sep=".",'pdf')
         },
         
         content = function(file) {
@@ -297,10 +320,7 @@ shinyServer(function(input, output) {
             file.copy(src, 'myreport.Rmd')
             
             library(rmarkdown)
-            out <- render('myreport.Rmd', switch(
-                input$format,
-                PDF = pdf_document(), HTML = html_document(), Word = word_document()
-            ))
+            out <- render('myreport.Rmd', pdf_document())
             file.rename(out, file)
         }
     )
