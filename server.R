@@ -1,7 +1,6 @@
-library(shiny)
 library(ggplot2)
 library(RCmodels)
-library(googleVis)
+suppressPackageStartupMessages(library(googleVis))
 shinyServer(function(input, output) {
     
     model1<-reactive({
@@ -208,13 +207,14 @@ shinyServer(function(input, output) {
             if ("raun" %in% input$checkbox){
                 rcraun=ggplot(data)+theme_bw()+geom_point(aes(exp(Q),W))+geom_line(aes(exp(fit),W))+
                     geom_line(aes(exp(lower),W),linetype="dashed")+geom_line(aes(exp(upper),W),linetype="dashed")+
-                    ggtitle(paste("Rating curve for",input$name))+ylab("W  [cm]")+xlab(expression(paste("Q  [",m^3,'/s]',sep='')))
+                    ggtitle(paste("Rating curve for",input$name))+ylab("W  [cm]")+xlab(expression(paste("Q  [",m^3,'/s]',sep='')))+
+                    theme(plot.title = element_text(size=20, vjust=2))
                 outputlist$rcraun=rcraun
             }
             if("log" %in% input$checkbox){
                 rclog=ggplot(data)+geom_line(mapping=aes(fit,l_m))+theme_bw()+geom_point(mapping=aes(Q,l_m))+geom_line(mapping=aes(lower,l_m),linetype="dashed")+
                     geom_line(mapping=aes(upper,l_m),linetype="dashed")+ggtitle(paste("Rating curve for",input$name,"(log scale)"))+
-                    ylab(expression(log(W-hat(c))))+xlab("log(Q)")
+                    ylab(expression(log(W-hat(c))))+xlab("log(Q)")+theme(plot.title = element_text(size=20, vjust=2))
                 
                 outputlist$rclog=rclog
             }
@@ -222,8 +222,11 @@ shinyServer(function(input, output) {
             
             if ("leifraun" %in% input$checkbox){
                 data$residraun=(exp(data$Q)-exp(data$fit))
-                rcleifraun=ggplot(data)+geom_point(aes(exp(l_m)+c_hat,residraun),color="red")+theme_bw()+geom_abline(intercept = 0, slope = 0)+
-                    ylab(expression(epsilon[i]))+ggtitle("Residual plot")+xlab("W  [cm]")
+                data$residupper=exp(data$upper)-exp(data$fit)
+                data$residlower=exp(data$lower)-exp(data$fit)
+                rcleifraun=ggplot(data)+geom_point(aes(W,residraun),color="red")+theme_bw()+geom_abline(intercept = 0, slope = 0)+
+                    geom_line(aes(W,residupper),linetype="dashed")+geom_line(aes(W,residlower),linetype="dashed")+ylab(expression(epsilon[i]))+
+                    ggtitle("Residual plot")+xlab("W  [cm]")+theme(plot.title = element_text(size=20, vjust=2))
                 
                 outputlist$rcleifraun=rcleifraun
             } 
@@ -231,7 +234,8 @@ shinyServer(function(input, output) {
                 data$residlog=(data$Q-data$fit)/sqrt(exp(plotlist$t_m[2,]))
                 rcleiflog=ggplot(data)+geom_point(aes(l_m,residlog),color="red")+theme_bw()+geom_abline(intercept = 0, slope = 0)+
                     geom_abline(intercept = 2, slope = 0,linetype="dashed")+geom_abline(intercept = -2, slope = 0,linetype="dashed")+ylim(-4,4)+
-                    ylab(expression(epsilon[i]))+ggtitle("Residual plot (log scale)")+xlab(expression(log(W-hat(c))))
+                    ylab(expression(epsilon[i]))+ggtitle("Residual plot (log scale)")+xlab(expression(log(W-hat(c))))+
+                    theme(plot.title = element_text(size=20, vjust=2))
                 
                 
                 outputlist$rcleiflog=rcleiflog

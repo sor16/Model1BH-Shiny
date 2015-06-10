@@ -2,6 +2,10 @@
 title: "Bayesian Rating curve"
 mathjax: "http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"
 ---
+```{r setup, include=FALSE}
+library(knitr)
+opts_chunk$set(dev = 'pdf')
+```
 
 ```{r echo=FALSE, include=FALSE}
 library(stargazer,quietly=TRUE)
@@ -20,8 +24,7 @@ Formula of Rating curve: $$\ Q(W) = `r a` \cdot (W - `r c_hat` )^{ `r b`}$$
 ```{r results='asis',echo=FALSE}
 stargazer(plotratingcurve()$tafla,type="latex",summary=FALSE, title=input$name,header=FALSE)
 ```
-   
-   
+
 ```{r,echo=FALSE}
 if(length(plotratingcurve())!=0)
     if(class(plotratingcurve()[[1]])[1]=="gg")
