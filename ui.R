@@ -10,7 +10,7 @@ shinyUI(fluidPage(
             textInput("name","Name of river"),
             br(),
             fileInput('file1', 'Choose file'),
-            checkboxGroupInput("checkbox", label = "Úttak",choices=list("Real scale"="raun","Logarithmic scale"="log",
+            checkboxGroupInput("checkbox", label = "Output",choices=list("Real scale"="raun","Logarithmic scale"="log",
                                                                          "Real scale residuals"="leifraun","Standardized residuals"="leiflog") ,selected = NULL),
             actionButton("go", label="Submit"),
             br(),
