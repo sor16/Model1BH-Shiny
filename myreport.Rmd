@@ -6,23 +6,28 @@ mathjax: "http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HT
 ```{r echo=FALSE, include=FALSE}
 library(stargazer,quietly=TRUE)
 ```  
-
+   
+      
 ```{r echo=FALSE}
 plotlist=model1()
-a=plotlist$mu[1]
-b=plotlist$mu[2]
-c_hat=min(plotlist$RC$W)-exp(plotlist$t_m[1,])
+a=exp(plotlist$mu[1])
+b=exp(plotlist$mu[2])
+c_hat=exp(min(plotlist$RC$w)-exp(plotlist$t_m[1,]))
 ```
+
 Formula of Rating curve: $$\ Q(W) = `r a` \cdot (W - `r c_hat` )^{ `r b`}$$
+
 ```{r results='asis',echo=FALSE}
 stargazer(plotratingcurve()$tafla,type="latex",summary=FALSE, title=input$name,header=FALSE)
 ```
-
+   
+   
 ```{r,echo=FALSE}
 if(length(plotratingcurve())!=0)
     if(class(plotratingcurve()[[1]])[1]=="gg")
         plotratingcurve()[[1]]
 ```
+   
    
 ```{r,echo=FALSE}
 if(length(plotratingcurve())>=2)
@@ -30,11 +35,13 @@ if(length(plotratingcurve())>=2)
         plotratingcurve()[[2]]
 ```
    
+   
 ```{r,echo=FALSE}
 if(length(plotratingcurve())>=3)
     if(class(plotratingcurve()[[3]])[1]=="gg")
         plotratingcurve()[[3]]
 ```
+   
    
 ```{r,echo=FALSE}
 if(length(plotratingcurve())>=4)
