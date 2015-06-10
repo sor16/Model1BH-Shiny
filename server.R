@@ -208,7 +208,7 @@ shinyServer(function(input, output) {
             if ("raun" %in% input$checkbox){
                 rcraun=ggplot(data)+theme_bw()+geom_point(aes(exp(Q),W))+geom_line(aes(exp(fit),W))+
                     geom_line(aes(exp(lower),W),linetype="dashed")+geom_line(aes(exp(upper),W),linetype="dashed")+
-                    ggtitle(paste("Rating curve for",input$name))+ylab("W (cm)")+xlab(paste("Q",expression(m^3/s)))
+                    ggtitle(paste("Rating curve for",input$name))+ylab("W  [cm]")+xlab(expression(paste("Q  [",m^3,'/s]',sep='')))
                 outputlist$rcraun=rcraun
             }
             if("log" %in% input$checkbox){
@@ -223,7 +223,7 @@ shinyServer(function(input, output) {
             if ("leifraun" %in% input$checkbox){
                 data$residraun=(exp(data$Q)-exp(data$fit))
                 rcleifraun=ggplot(data)+geom_point(aes(exp(l_m)+c_hat,residraun),color="red")+theme_bw()+geom_abline(intercept = 0, slope = 0)+
-                    ylab(expression(epsilon[i]))+ggtitle("Residual plot")+xlab("W (cm)")
+                    ylab(expression(epsilon[i]))+ggtitle("Residual plot")+xlab("W  [cm]")
                 
                 outputlist$rcleifraun=rcleifraun
             } 
