@@ -15,8 +15,8 @@ library(stargazer,quietly=TRUE)
 ```{r echo=FALSE}
 plotlist=model1()
 a=exp(plotlist$mu[1])
-b=exp(plotlist$mu[2])
-c_hat=exp(min(plotlist$RC$w)-exp(plotlist$t_m[1,]))
+b=plotlist$mu[2]
+c_hat=min(plotlist$RC$w)-exp(plotlist$t_m[1,])
 ```
 
 Formula of Rating curve: $$\ Q(W) = `r a` \cdot (W - `r c_hat` )^{ `r b`}$$

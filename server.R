@@ -1,6 +1,5 @@
 library(ggplot2)
 library(RCmodels)
-library(knitr)
 suppressPackageStartupMessages(library(googleVis))
 
 
@@ -211,13 +210,13 @@ shinyServer(function(input, output) {
                 rcraun=ggplot(data)+theme_bw()+geom_point(aes(exp(Q),W))+geom_line(aes(exp(fit),W))+
                     geom_line(aes(exp(lower),W),linetype="dashed")+geom_line(aes(exp(upper),W),linetype="dashed")+
                     ggtitle(paste("Rating curve for",input$name))+ylab("W  [cm]")+xlab(expression(paste("Q  [",m^3,'/s]',sep='')))+
-                    theme(plot.title = element_text(size=20, vjust=2))
+                    theme(plot.title = element_text(vjust=2))
                 outputlist$rcraun=rcraun
             }
             if("log" %in% input$checkbox){
                 rclog=ggplot(data)+geom_line(mapping=aes(fit,l_m))+theme_bw()+geom_point(mapping=aes(Q,l_m))+geom_line(mapping=aes(lower,l_m),linetype="dashed")+
                     geom_line(mapping=aes(upper,l_m),linetype="dashed")+ggtitle(paste("Rating curve for",input$name,"(log scale)"))+
-                    ylab(expression(log(W-hat(c))))+xlab("log(Q)")+theme(plot.title = element_text(size=20, vjust=2))
+                    ylab(expression(log(W-hat(c))))+xlab("log(Q)")+theme(plot.title = element_text(vjust=2))
                 
                 outputlist$rclog=rclog
             }
@@ -228,8 +227,8 @@ shinyServer(function(input, output) {
                 data$residupper=exp(data$upper)-exp(data$fit)
                 data$residlower=exp(data$lower)-exp(data$fit)
                 rcleifraun=ggplot(data)+geom_point(aes(W,residraun),color="red")+theme_bw()+geom_abline(intercept = 0, slope = 0)+
-                    geom_line(aes(W,residupper),linetype="dashed")+geom_line(aes(W,residlower),linetype="dashed")+ylab(expression(epsilon[i]))+
-                    ggtitle("Residual plot")+xlab("W  [cm]")+theme(plot.title = element_text(size=20, vjust=2))
+                    geom_line(aes(W,residupper),linetype="dashed")+geom_line(aes(W,residlower),linetype="dashed")+ylab(expression(paste("Q - ",hat(Q) ,"  [",m^3,'/s]',sep='')))+
+                    ggtitle("Residual plot")+xlab("W  [cm]")+theme(plot.title = element_text(vjust=2))
                 
                 outputlist$rcleifraun=rcleifraun
             } 
@@ -238,7 +237,7 @@ shinyServer(function(input, output) {
                 rcleiflog=ggplot(data)+geom_point(aes(l_m,residlog),color="red")+theme_bw()+geom_abline(intercept = 0, slope = 0)+
                     geom_abline(intercept = 2, slope = 0,linetype="dashed")+geom_abline(intercept = -2, slope = 0,linetype="dashed")+ylim(-4,4)+
                     ylab(expression(epsilon[i]))+ggtitle("Residual plot (log scale)")+xlab(expression(log(W-hat(c))))+
-                    theme(plot.title = element_text(size=20, vjust=2))
+                    theme(plot.title = element_text(vjust=2))
                 
                 
                 outputlist$rcleiflog=rcleiflog
@@ -311,44 +310,45 @@ shinyServer(function(input, output) {
                 
         
     })
-    createReport <- reactive({
-         
-        sink(cat(
-            "\\documentclass{article}\n
-            \\begin{document}\n
-            \\SweaveOpts{concordance=TRUE}
-            This is the Rnw file.\n
-            <<fig=TRUE>>=
-            plot(0,0)
-            @\n
-            \\end{document}\n"))
-    })
-
 
     output$downloadReport <- downloadHandler(
         filename = function() {
             paste(input$file1$name, sep=".",'pdf')
         },
-        
-        #content = createReport
-    #)
         content <- function(file) {
-            src <- normalizePath('myreport.Rnw')
+            src <- normalizePath('myreport.Rmd')
             
             # temporarily switch to the temp dir, in case you do not have write
             #permission to the current working directory
             owd <- setwd(tempdir())
             on.exit(setwd(owd))
-            file.copy(src, 'myreport.Rnw')
+            file.copy(src, 'myreport.Rmd')
             
-            
-            out <- knit2pdf('myreport.Rnw', clean=TRUE)
+            library(rmarkdown)
+            out <- render('myreport.Rmd',pdf_document())
             file.rename(out, file)
         },
-        contentType='application/pdf'
+       
+       
     )
     
     
 })
+
+
+# content <- function(file) {
+#     src <- normalizePath('myreport.Rnw')
+#     
+#     # temporarily switch to the temp dir, in case you do not have write
+#     #permission to the current working directory
+#     owd <- setwd(tempdir())
+#     on.exit(setwd(owd))
+#     file.copy(src, 'myreport.Rnw')
+#     
+#     
+#     out <- knit2pdf('myreport.Rnw', clean=TRUE)
+#     file.rename(out, file)
+# },
+# contentType='application/pdf'
 
 
