@@ -21,7 +21,6 @@ shinyUI(fluidPage(
         #list of outputs
         mainPanel(
         textOutput('callreactive'),
-        
             tabsetPanel(
                 id = 'dataset',
                 

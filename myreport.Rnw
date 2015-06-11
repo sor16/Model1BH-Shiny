@@ -1,7 +1,6 @@
 \documentclass{article}
 
 \begin{document}
-\SweaveOpts{concordance=TRUE}
 
 <<echo=FALSE, include=FALSE>>=
 library(stargazer,quietly=TRUE)
@@ -15,7 +14,6 @@ b=exp(plotlist$mu[2])
 c_hat=exp(min(plotlist$RC$w)-exp(plotlist$t_m[1,]))
 @
 
-Formula of Rating curve: $$\ Q(W) = `r a` \cdot (W - `r c_hat` )^{ `r b`}$$
 
 <<echo=FALSE, results="asis">>=
 stargazer(plotratingcurve()$tafla,type="latex",summary=FALSE, title=input$name,header=FALSE)

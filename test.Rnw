@@ -1,0 +1,14 @@
+\documentclass{article}
+
+\begin{document}
+\SweaveOpts{concordance=TRUE}
+<<>>=
+library(ggplot2)
+text=2
+ggplot(data.frame(x=rnorm(1),y=text),aes(x,y))+geom_point()+ylab(expression(paste("Q  [",m^3,'/s]',sep='')))+xlab(expression(log(W-hat(c))))
+@
+
+
+
+
+\end{document}

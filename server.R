@@ -1,6 +1,9 @@
 library(ggplot2)
 library(RCmodels)
+library(knitr)
 suppressPackageStartupMessages(library(googleVis))
+
+
 shinyServer(function(input, output) {
     
     model1<-reactive({
@@ -308,7 +311,18 @@ shinyServer(function(input, output) {
                 
         
     })
-
+    createReport <- reactive({
+         
+        sink(cat(
+            "\\documentclass{article}\n
+            \\begin{document}\n
+            \\SweaveOpts{concordance=TRUE}
+            This is the Rnw file.\n
+            <<fig=TRUE>>=
+            plot(0,0)
+            @\n
+            \\end{document}\n"))
+    })
 
 
     output$downloadReport <- downloadHandler(
@@ -316,20 +330,24 @@ shinyServer(function(input, output) {
             paste(input$file1$name, sep=".",'pdf')
         },
         
-        content = function(file) {
-            src <- normalizePath('myreport.Rmd')
+        #content = createReport
+    #)
+        content <- function(file) {
+            src <- normalizePath('myreport.Rnw')
             
             # temporarily switch to the temp dir, in case you do not have write
-            # permission to the current working directory
+            #permission to the current working directory
             owd <- setwd(tempdir())
             on.exit(setwd(owd))
-            file.copy(src, 'myreport.Rmd')
+            file.copy(src, 'myreport.Rnw')
             
-            library(rmarkdown)
-            out <- render('myreport.Rmd', pdf_document())
+            
+            out <- knit2pdf('myreport.Rnw', clean=TRUE)
             file.rename(out, file)
-        }
+        },
+        contentType='application/pdf'
     )
+    
     
 })
 
