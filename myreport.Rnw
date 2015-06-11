@@ -1,0 +1,51 @@
+\documentclass{article}
+
+\begin{document}
+\SweaveOpts{concordance=TRUE}
+
+<<echo=FALSE, include=FALSE>>=
+library(stargazer,quietly=TRUE)
+@
+   
+      
+<<echo=FALSE>>=
+plotlist=model1()
+a=exp(plotlist$mu[1])
+b=exp(plotlist$mu[2])
+c_hat=exp(min(plotlist$RC$w)-exp(plotlist$t_m[1,]))
+@
+
+Formula of Rating curve: $$\ Q(W) = `r a` \cdot (W - `r c_hat` )^{ `r b`}$$
+
+<<echo=FALSE, results="asis">>=
+stargazer(plotratingcurve()$tafla,type="latex",summary=FALSE, title=input$name,header=FALSE)
+@
+
+<<echo=FALSE>>=
+if(length(plotratingcurve())!=0)
+    if(class(plotratingcurve()[[1]])[1]=="gg")
+        plotratingcurve()[[1]]
+@
+   
+   
+<<echo=FALSE>>=
+if(length(plotratingcurve())>=2)
+    if(class(plotratingcurve()[[2]])[1]=="gg")
+        plotratingcurve()[[2]]
+@
+   
+   
+<<echo=FALSE>>=
+if(length(plotratingcurve())>=3)
+    if(class(plotratingcurve()[[3]])[1]=="gg")
+        plotratingcurve()[[3]]
+@
+   
+   
+<<echo=FALSE>>=
+if(length(plotratingcurve())>=4)
+    if(class(plotratingcurve()[[4]])[1]=="gg")
+        plotratingcurve()[[4]]
+@
+
+\end{document}
