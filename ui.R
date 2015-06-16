@@ -19,7 +19,9 @@ shinyUI(fluidPage(
             
         ),
         #list of outputs
+       
         mainPanel(
+            
         textOutput('callreactive'),
             tabsetPanel(
                 id = 'dataset',
@@ -27,7 +29,32 @@ shinyUI(fluidPage(
                 tabPanel('Plots',  uiOutput('plots')),
                        
                 tabPanel('Numeric summary', uiOutput('tafla'))
+            ),
+        tagList(
+            tags$head(
+                tags$link(rel="stylesheet", type="text/css",href="style.css"),
+                tags$script(type="text/javascript", src = "busy.js")
             )
+        ),
+        br(),
+        br(),
+        br(),
+        br(),
+        br(),
+        br(),
+        br(),
+        br(),
+        br(),
+        br(),
+        br(),
+        br(),
+        br(),
+        br(),
+        br(),
+        br(),
+        div(class = "busy",
+            img(src="progress.GIF")
+        )
         )
     )
 ))

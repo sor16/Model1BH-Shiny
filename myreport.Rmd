@@ -1,10 +1,9 @@
 ---
-title: "Bayesian Rating curve"
+title: "Bayesian Rating Curve"
 mathjax: "http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"
 ---
 ```{r setup, include=FALSE}
-library(knitr)
-opts_chunk$set(dev = 'pdf')
+Sys.setlocale("LC_ALL","is_IS")
 ```
 
 ```{r echo=FALSE, include=FALSE}
@@ -13,16 +12,22 @@ library(stargazer,quietly=TRUE)
    
       
 ```{r echo=FALSE}
-plotlist=model1()
+plotlist=model1fast()
 a=exp(plotlist$mu[1])
 b=plotlist$mu[2]
 c_hat=min(plotlist$RC$w)-exp(plotlist$t_m[1,])
+varappr=mean(plotlist$varappr)
+predict=1.96*sqrt(varappr)
 ```
 
-Formula of Rating curve: $$\ Q(W) = `r a` \cdot (W - `r c_hat` )^{ `r b`}$$
+Formula for rating curve: $$\ Q(W) = `r a` \cdot (W - `r c_hat` )^{ `r b`}$$
+    
+Formula for upper predictive: $$\ Q_{upper}(W) = `r a` \cdot (W - `r c_hat` )^{ `r b`} \cdot `r exp(predict)`$$
+
+Formula for lower predictive: $$\ Q_{lower}(W) = `r a` \cdot (W - `r c_hat` )^{ `r b`} \cdot `r exp(-predict)`$$
 
 ```{r results='asis',echo=FALSE}
-stargazer(plotratingcurve()$tafla,type="latex",summary=FALSE, title=input$name,header=FALSE)
+stargazer(plotratingcurve()$tafla,type="latex",summary=FALSE, title=input$name,header=FALSE,digits=3,digits.extra=3)
 ```
 
 ```{r,echo=FALSE}
