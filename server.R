@@ -105,7 +105,7 @@ shinyServer(function(input, output) {
                 RC$w=as.matrix(0.01*wq[,1])
                 RC$w_tild=RC$w-min(RC$w)
                 
-                Adist1 <- Adist(RC$w)
+                Adist1 <- Adist(sort(RC$w))
                 RC$A=Adist1$A
                 RC$dist=Adist1$dist
                 RC$n=Adist1$n
@@ -120,13 +120,50 @@ shinyServer(function(input, output) {
                 
                 RC$m1=matrix(0,nrow=2,ncol=RC$n)
                 RC$m2=matrix(0,nrow=RC$n,ncol=2)
+                theta.init=as.matrix(rep(0,9))
                 
-                Dens = function(th) {-Densevalm22fast(th,RC)$p}
+                Dens = function(th) {-Densevalm22(th,RC)$p}
                 Densmin=optim(par=theta.init,Dens,method="BFGS",hessian=TRUE)
                 t_m =Densmin$par
                 H=Densmin$hessian
+                phi_b=t_m[3]
+                sig_b2=t_m[2]
+                zeta=t_m[1]
+                lambda=t_m[4:9]
                 l=log(RC$w_tild+exp(t_m[1])) #as.matrix
                 varr_m=exp(RC$B%*%lambda)
+                
+                Sig_eps=diag(as.numeric(rbind(varr_m,0)))
+                R_Beta=(1+sqrt(5)*RC$dist/exp(phi_b)+5*RC$dist^2/(3*exp(phi_b)^2))*exp(-sqrt(5)*RC$dist/exp(phi_b))+diag(1,RC$n,RC$n)*RC$nugget
+                Sig_x=rbind(cbind(RC$Sig_ab,matrix(0,nrow=2,ncol=RC$n)),cbind(matrix(0,nrow=RC$n,ncol=2),exp(sig_b2)*R_Beta))
+                
+                X=Matrix(rbind(cbind(matrix(1,dim(l)),l,Matrix(diag(as.numeric(l)),sparse=TRUE)%*%RC$A),RC$Z),sparse=TRUE)
+                
+                
+                L=t(chol(as.matrix(X%*%Sig_x%*%t(X)+Sig_eps)))
+                
+                w=solve(L,(-RC$y+X%*%RC$mu_x))
+                mu=RC$mu_x-Sig_x%*%(t(X)%*%(solve(t(L),w)))
+                
+                ymu=X%*%mu
+                ymu=ymu[1:RC$N]
+                plot(RC$w,exp(ymu))
+                
+                W=solve(L,(X%*%Sig_x))
+                vartem=diag(X%*%(Sig_x-t(W)%*%W)%*%t(X))
+                
+                vartem=vartem[1:RC$N]
+                #varaprr=+vartem+varr_m
+                
+                
+                #%emp bayes
+                #ymu #%mat
+                #oryggisbil=cbind(ymu+qnorm(0.025,0,sqrt(varaprr)), ymu+qnorm(0.975,0,sqrt(varaprr))) #oryggisbil a log
+                
+                #[norminv(0.025,0,sqrt(varaprr)) norminv(0.975,0,sqrt(varaprr))]
+                
+                #LH=chol(H)'/0.42
+                LH=t(chol(H))/0.8
                 
                 t1=matrix(0,9,Nit)
                 t2=matrix(0,9,Nit)
@@ -152,7 +189,7 @@ shinyServer(function(input, output) {
                     
                     
                     
-                    Dens<-Densevalm22fast(t_old,RC)
+                    Dens<-Densevalm22(t_old,RC)
                     p_old=Dens$p
                     x_old=Dens$x
                     yp_old=Dens$yp
@@ -163,7 +200,7 @@ shinyServer(function(input, output) {
                     for(i in 1:Nit){
                         t_new=t_old+solve(t(LH),as.matrix(rnorm(9,0,1)))
                         
-                        Densnew<-Densevalm22fast(t_new,RC)
+                        Densnew<-Densevalm22(t_new,RC)
                         p_new=Densnew$p
                         x_new=Densnew$x
                         yp_new=Densnew$yp
@@ -226,7 +263,7 @@ shinyServer(function(input, output) {
         quantypo3=ypo3[,seq]
         quantypo4=ypo4[,seq]
         quantmatrix=t(cbind(quantypo1,quantypo2,quantypo3,quantypo4))
-        return(list("RC"=RC,"l"=l,"varr_m"=varr_m,"qvdata"=qvdata,"quantmatrix"=quantmatrix ))
+        return(list("RC"=RC,"l"=l,"t_m"=t_m,"varr_m"=varr_m,"qvdata"=qvdata,"quantmatrix"=quantmatrix ))
         })
         }
     })
