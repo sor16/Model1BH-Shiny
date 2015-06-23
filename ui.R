@@ -33,16 +33,16 @@ shinyUI(fluidPage(
                                    
                 tabPanel('Plots',  uiOutput('plots')),
                        
-                tabPanel('Numeric summary', uiOutput('tafla'))
-               # ),
+                tabPanel('Numeric summary', uiOutput('tafla')),
+              # ),
                 
-#                 conditionalPanel(condition= "input.checkbox2 == mdl2",
-#                                
-#                                tabPanel('Plots2',  uiOutput('plots')),
-#                                
-#                                tabPanel('Numeric summary 2', uiOutput('tafla'))
-#                 )
-#                 
+                #conditionalPanel(condition= "input.checkbox2 == mdl2",
+                               
+                               tabPanel('Plots2',  uiOutput('plots2')),
+                               
+                               tabPanel('Numeric summary 2', uiOutput('tafla2'))
+                #)
+                
                 
             ),
         tagList(

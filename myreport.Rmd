@@ -12,7 +12,7 @@ library(stargazer,quietly=TRUE)
    
       
 ```{r echo=FALSE}
-plotlist=model1fast()
+plotlist=model1()
 a=exp(plotlist$mu[1])
 b=plotlist$mu[2]
 c_hat=min(plotlist$RC$w)-exp(plotlist$t_m[1,])
@@ -27,33 +27,63 @@ Formula for upper predictive: $$\ Q_{upper}(W) = `r a` \cdot (W - `r c_hat` )^{ 
 Formula for lower predictive: $$\ Q_{lower}(W) = `r a` \cdot (W - `r c_hat` )^{ `r b`} \cdot `r exp(-predict)`$$
 
 ```{r results='asis',echo=FALSE}
-stargazer(plotratingcurve()$tafla,type="latex",summary=FALSE, title=input$name,header=FALSE,digits=3,digits.extra=3)
+stargazer(plotratingcurve1()$tafla,type="latex",summary=FALSE, title=input$name,header=FALSE,digits=3,digits.extra=3)
 ```
 
 ```{r,echo=FALSE}
-if(length(plotratingcurve())!=0)
-    if(class(plotratingcurve()[[1]])[1]=="gg")
-        plotratingcurve()[[1]]
+if(length(plotratingcurve1())!=0)
+    if(class(plotratingcurve1()[[1]])[1]=="gg")
+        plotratingcurve1()[[1]]
 ```
    
    
 ```{r,echo=FALSE}
-if(length(plotratingcurve())>=2)
-    if(class(plotratingcurve()[[2]])[1]=="gg")
-        plotratingcurve()[[2]]
+if(length(plotratingcurve1())>=2)
+    if(class(plotratingcurve1()[[2]])[1]=="gg")
+        plotratingcurve1()[[2]]
 ```
    
    
 ```{r,echo=FALSE}
-if(length(plotratingcurve())>=3)
-    if(class(plotratingcurve()[[3]])[1]=="gg")
-        plotratingcurve()[[3]]
+if(length(plotratingcurve1())>=3)
+    if(class(plotratingcurve1()[[3]])[1]=="gg")
+        plotratingcurve1()[[3]]
 ```
    
    
 ```{r,echo=FALSE}
-if(length(plotratingcurve())>=4)
-    if(class(plotratingcurve()[[4]])[1]=="gg")
-        plotratingcurve()[[4]]
+if(length(plotratingcurve1())>=4)
+    if(class(plotratingcurve1()[[4]])[1]=="gg")
+        plotratingcurve1()[[4]]
 ```
 
+```{r results='asis',echo=FALSE}
+stargazer(plotratingcurve2()$tafla2,type="latex",summary=FALSE, title=input$name,header=FALSE,digits=3,digits.extra=3)
+```
+
+```{r,echo=FALSE}
+if(length(plotratingcurve2())!=0)
+    if(class(plotratingcurve2()[[1]])[1]=="gg")
+        plotratingcurve2()[[1]]
+```
+   
+   
+```{r,echo=FALSE}
+if(length(plotratingcurve2())>=2)
+    if(class(plotratingcurve2()[[2]])[1]=="gg")
+        plotratingcurve2()[[2]]
+```
+   
+   
+```{r,echo=FALSE}
+if(length(plotratingcurve2())>=3)
+    if(class(plotratingcurve2()[[3]])[1]=="gg")
+        plotratingcurve2()[[3]]
+```
+   
+   
+```{r,echo=FALSE}
+if(length(plotratingcurve2())>=4)
+    if(class(plotratingcurve2()[[4]])[1]=="gg")
+        plotratingcurve2()[[4]]
+```
