@@ -12,6 +12,9 @@ shinyUI(fluidPage(
             fileInput('file1', 'Choose file'),
             checkboxGroupInput("checkbox", label = "Output",choices=list("Real scale"="raun","Logarithmic scale"="log",
                                                                          "Real scale residuals"="leifraun","Standardized residuals"="leiflog") ,selected = NULL),
+           
+            br(),
+            checkboxGroupInput("checkbox2", label = "Models",choices=list("Model 1"= "mdl1", "Model 2"="mdl2"), inline=TRUE),
             actionButton("go", label="Submit"),
             br(),
             br(),
