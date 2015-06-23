@@ -29,9 +29,21 @@ shinyUI(fluidPage(
             tabsetPanel(
                 id = 'dataset',
                 
+                #conditionalPanel(condition= "output.plots != NULL",
+                                   
                 tabPanel('Plots',  uiOutput('plots')),
                        
                 tabPanel('Numeric summary', uiOutput('tafla'))
+               # ),
+                
+#                 conditionalPanel(condition= "input.checkbox2 == mdl2",
+#                                
+#                                tabPanel('Plots2',  uiOutput('plots')),
+#                                
+#                                tabPanel('Numeric summary 2', uiOutput('tafla'))
+#                 )
+#                 
+                
             ),
         tagList(
             tags$head(

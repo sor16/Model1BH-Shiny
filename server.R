@@ -219,8 +219,7 @@ shinyServer(function(input, output) {
                 }
                 
             
-            }
-        }
+        
         seq=seq(2000,20000,5)
         quantypo1=ypo1[,seq]
         quantypo2=ypo2[,seq]
@@ -228,6 +227,8 @@ shinyServer(function(input, output) {
         quantypo4=ypo4[,seq]
         quantmatrix=t(cbind(quantypo1,quantypo2,quantypo3,quantypo4))
         return(list("RC"=RC,"l"=l,"varr_m"=varr_m,"qvdata"=qvdata,"quantmatrix"=quantmatrix ))
+        })
+        }
     })
     
     plotratingcurve2 <- eventReactive(input$go,{
