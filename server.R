@@ -79,7 +79,7 @@ model1<-reactive({
               v_temp=X_m%*%solve(RC$Sig_xinv+t(X_m)%*%X_m/exp(t_m[2,]))%*%t(X_m) 
               
               
-              varappr=mean(as.matrix(diag(v_temp)+exp(t_m[2,]))); 
+              varappr=mean(as.matrix(diag(v_temp)+exp(t_m[2,]))) 
               
               
               confinterval= cbind(X_m%*%mu+qnorm(0.025,0,sqrt(varappr)),X_m%*%mu+qnorm(0.975,0,sqrt(varappr))) 
