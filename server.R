@@ -66,23 +66,38 @@ shinyServer(function(input, output) {
                 H=Densmin$hessian
                 
                 
-                l_m=as.matrix(log(RC$w_tild+exp(t_m[1,]))); 
+                l_m=as.matrix(log(RC$w_tild+exp(t_m[1,]))) 
                 
-                X_m=cbind(matrix(1,nrow(l_m),ncol(l_m)),l_m); 
+                X_m=cbind(matrix(1,nrow(l_m),ncol(l_m)),l_m) 
                 
-                L=t(chol(RC$Sig_xinv+t(X_m)%*%X_m/exp(t_m[2,]))); 
+                L=t(chol(RC$Sig_xinv+t(X_m)%*%X_m/exp(t_m[2,]))) 
                 
-                mu=solve(t(L),(solve(L,(RC$Sinvmu+t(X_m)%*%RC$y/exp(t_m[2,]))))); 
+                mu=solve(t(L),(solve(L,(RC$Sinvmu+t(X_m)%*%RC$y/exp(t_m[2,])))))
                 
                 v_temp=X_m%*%solve(RC$Sig_xinv+t(X_m)%*%X_m/exp(t_m[2,]))%*%t(X_m) 
                 
-                varappr=mean(as.matrix(diag(v_temp)+exp(t_m[2,]))); 
+                varappr=mean(as.matrix(diag(v_temp)+exp(t_m[2,])))
                 
                 RC$fit=X_m%*%mu
                 
                 RC$confinterval= cbind(X_m%*%mu+qnorm(0.025,0,sqrt(varappr)),X_m%*%mu+qnorm(0.975,0,sqrt(varappr))) 
                 
-                return(list("RC"=RC,"l_m"=l_m,"t_m"=t_m,"qvdata"=qvdata,"fit"=X_m%*%mu, "mu"=mu, "varappr"=varappr))
+                data=data.frame(W=RC$w,Q=RC$y)
+                data$l_m=l_m
+                data$fit=RC$fit
+                
+                simdata=data.frame(l_m=seq(,max(data$l_m),length.out=1000))
+                c_hat=min(data$W)-exp(plotlist$t_m[1,]) 
+                simdata$Wfit = exp(simdata$l_m) + c_hat
+                simdata$fit=mu[1,]+mu[2,]*simdata$l_m
+                data$upper=RC$confinterval[,2]
+                data$lower=RC$confinterval[,1]
+                simdata$upper=simdata$fit+qnorm(0.975,0,sqrt(varappr))
+                simdata$lower=simdata$fit+qnorm(0.025,0,sqrt(varappr))
+                
+                
+                
+                return(list("RC"=RC,"l_m"=l_m,"t_m"=t_m,"qvdata"=qvdata,"fit"=X_m%*%mu, "mu"=mu, "varappr"=varappr,"mu"=mu))
         
     })
         }
@@ -333,19 +348,6 @@ shinyServer(function(input, output) {
         outputlist=list()
         if(!is.null(plotlist$qvdata)) {
             
-            data=data.frame(W=plotlist$RC$w,Q=plotlist$RC$y)
-            data$l_m=plotlist$l_m
-            data$fit=plotlist$fit
-            
-            simdata=data.frame(fit=as.matrix(0,max(data$fit),length.out=1000))
-            c_hat=min(data$W)-exp(plotlist$t_m[1,])
-            simdata$fitl_m = as.matrix(c_hat,max(data$l_m),length.out=1000)
-            simdata$Wfit = exp(simdata$fitl_m) + c_hat
-            data$upper=plotlist$RC$confinterval[,2]
-            data$lower=plotlist$RC$confinterval[,1]
-            simdata$upper=as.matrix(seq(0,max(data$upper),length.out=1000))
-            simdata$lower=as.matrix(seq(0,max(data$lower),length.out=1000))
-            
         if ("raun" %in% input$checkbox){
             rcraun=ggplot(simdata)+theme_bw()+geom_point(data=data,aes(exp(Q),W))+geom_line(aes(exp(fit),Wfit))+
                 geom_line(aes(exp(lower),Wfit),linetype="dashed")+geom_line(aes(exp(upper),Wfit),linetype="dashed")+
@@ -354,8 +356,8 @@ shinyServer(function(input, output) {
             outputlist$rcraun=rcraun
         }
         if("log" %in% input$checkbox){
-            rclog=ggplot(simdata)+geom_line(mapping=aes(fit,fitl_m))+theme_bw()+geom_point(data=data,mapping=aes(Q,l_m))+geom_line(mapping=aes(lower,fitl_m),linetype="dashed")+
-                geom_line(mapping=aes(upper,fitl_m),linetype="dashed")+ggtitle(paste("Rating curve for",input$name,"(log scale)"))+
+            rclog=ggplot(simdata)+geom_line(mapping=aes(fit,l_m))+theme_bw()+geom_point(data=data,mapping=aes(Q,l_m))+geom_line(mapping=aes(lower,l_m),linetype="dashed")+
+                geom_line(mapping=aes(upper,l_m),linetype="dashed")+ggtitle(paste("Rating curve for",input$name,"(log scale)"))+
                 ylab(expression(log(W-hat(c))))+xlab("log(Q)")+theme(plot.title = element_text(vjust=2))
             
             outputlist$rclog=rclog
