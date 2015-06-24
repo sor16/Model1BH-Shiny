@@ -21,6 +21,7 @@ shinyServer(function(input, output) {
             names(qvdata)=c("Date","Time","W","Q")
             qvdata$Time=as.character(qvdata$Time)
             qvdata$Date=as.Date(gsub("\\.","-",qvdata$Date),"%d-%m-%Y")
+            qvdata=qvdata[with(qvdata,order(W)),]
             wq=as.matrix(qvdata[,3:4])
             
         }
@@ -103,7 +104,6 @@ shinyServer(function(input, output) {
                 RC$s=3
                 RC$v=5
                 
-                wq=wq[order(wq[,1]),]
                 RC$y=rbind(as.matrix(log(wq[,2])),0)
                 RC$w=as.matrix(0.01*wq[,1])
                 RC$w_tild=RC$w-min(RC$w)
@@ -308,7 +308,7 @@ shinyServer(function(input, output) {
             
             tafla=plotlist$qvdata
             tafla$W=0.01*tafla$W
-            tafla$Q=as.numeric(format(round(exp(tafla$Q),1)))
+            tafla$Q=as.numeric(format(round(tafla$Q,1)))
             tafla$Qfit=as.numeric(format(round(as.vector(exp(data$fit)),3)))
             tafla$lower=as.numeric(format(round(exp(data$lower),3)))
             tafla$upper=as.numeric(format(round(exp(data$upper),3)))
