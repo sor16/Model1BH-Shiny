@@ -337,14 +337,14 @@ shinyServer(function(input, output) {
             data$l_m=plotlist$l_m
             data$fit=plotlist$fit
             
-            simdata=data.frame(fit=as.matrix(seq(min(data$fit),max(data$fit),length.out=1000)))
-            simdata$fitl_m = as.matrix(seq(min(data$l_m),max(data$l_m),length.out=1000))
+            simdata=data.frame(fit=as.matrix(0,max(data$fit),length.out=1000))
             c_hat=min(data$W)-exp(plotlist$t_m[1,])
+            simdata$fitl_m = as.matrix(c_hat,max(data$l_m),length.out=1000)
             simdata$Wfit = exp(simdata$fitl_m) + c_hat
             data$upper=plotlist$RC$confinterval[,2]
             data$lower=plotlist$RC$confinterval[,1]
-            simdata$upper=as.matrix(seq(min(data$upper),max(data$upper),length.out=1000))
-            simdata$lower=as.matrix(seq(min(data$lower),max(data$lower),length.out=1000))
+            simdata$upper=as.matrix(seq(0,max(data$upper),length.out=1000))
+            simdata$lower=as.matrix(seq(0,max(data$lower),length.out=1000))
             
         if ("raun" %in% input$checkbox){
             rcraun=ggplot(simdata)+theme_bw()+geom_point(data=data,aes(exp(Q),W))+geom_line(aes(exp(fit),Wfit))+
