@@ -92,7 +92,7 @@ shinyServer(function(input, output) {
             withProgress(message = 'Making plot', value = 0, {
                 Nit=20000
                 
-                RC=priors(input$select)
+                RC=priors("Iceland")
                 
                 RC$nugget=10^-8
                 RC$mu_sb=0.5
@@ -101,6 +101,7 @@ shinyServer(function(input, output) {
                 RC$s=3
                 RC$v=5
                 
+                wq=wq[order(wq[,1]),]
                 RC$y=rbind(as.matrix(log(wq[,2])),0)
                 RC$w=as.matrix(0.01*wq[,1])
                 RC$w_tild=RC$w-min(RC$w)
@@ -120,7 +121,7 @@ shinyServer(function(input, output) {
                 
                 RC$m1=matrix(0,nrow=2,ncol=RC$n)
                 RC$m2=matrix(0,nrow=RC$n,ncol=2)
-                theta.init=as.matrix(rep(0,9))
+                theta.init=rep(0,9)
                 
                 Dens = function(th) {-Densevalm22(th,RC)$p}
                 Densmin=optim(par=theta.init,Dens,method="BFGS",hessian=TRUE)
@@ -132,7 +133,6 @@ shinyServer(function(input, output) {
                 lambda=t_m[4:9]
                 l=log(RC$w_tild+exp(t_m[1])) #as.matrix
                 varr_m=exp(RC$B%*%lambda)
-                
                 Sig_eps=diag(as.numeric(rbind(varr_m,0)))
                 R_Beta=(1+sqrt(5)*RC$dist/exp(phi_b)+5*RC$dist^2/(3*exp(phi_b)^2))*exp(-sqrt(5)*RC$dist/exp(phi_b))+diag(1,RC$n,RC$n)*RC$nugget
                 Sig_x=rbind(cbind(RC$Sig_ab,matrix(0,nrow=2,ncol=RC$n)),cbind(matrix(0,nrow=RC$n,ncol=2),exp(sig_b2)*R_Beta))
@@ -144,34 +144,13 @@ shinyServer(function(input, output) {
                 
                 w=solve(L,(-RC$y+X%*%RC$mu_x))
                 mu=RC$mu_x-Sig_x%*%(t(X)%*%(solve(t(L),w)))
-                
-                ymu=X%*%mu
-                ymu=ymu[1:RC$N]
-                plot(RC$w,exp(ymu))
-                
-                W=solve(L,(X%*%Sig_x))
-                vartem=diag(X%*%(Sig_x-t(W)%*%W)%*%t(X))
-                
-                vartem=vartem[1:RC$N]
-                #varaprr=+vartem+varr_m
-                
-                
-                #%emp bayes
-                #ymu #%mat
-                #oryggisbil=cbind(ymu+qnorm(0.025,0,sqrt(varaprr)), ymu+qnorm(0.975,0,sqrt(varaprr))) #oryggisbil a log
-                
-                #[norminv(0.025,0,sqrt(varaprr)) norminv(0.975,0,sqrt(varaprr))]
-                
-                #LH=chol(H)'/0.42
                 LH=t(chol(H))/0.8
                 
                 t1=matrix(0,9,Nit)
                 t2=matrix(0,9,Nit)
                 t3=matrix(0,9,Nit)
                 t4=matrix(0,9,Nit)
-                
                 xsiz=max(dim(mu))
-                
                 x1=matrix(0,xsiz,Nit)
                 x2=matrix(0,xsiz,Nit)
                 x3=matrix(0,xsiz,Nit)
@@ -280,7 +259,7 @@ shinyServer(function(input, output) {
             
             data=data.frame(W=plotlist$RC$w,Q=plotlist$RC$y[1:plotlist$RC$N,])
             data$l_m=plotlist$l
-            data$c_hat=rep(min(data$W)-exp(plotlist$t_m[1,]),length(data$l_m))
+            data$c_hat=rep(min(data$W)-exp(plotlist$t_m[1]),length(data$l_m))
             
             prctile=t(apply(plotlist$quantmatrix, 2, quantile, probs = c(0.025,0.5, 0.975),  na.rm = TRUE))
             data$lower=prctile[,1]
@@ -315,7 +294,7 @@ shinyServer(function(input, output) {
                 outputlist$rcleifraun=rcleifraun
             } 
             if("leiflog" %in% input$checkbox){
-                data$residlog=(data$Q-data$fit)/sqrt(exp(plotlist$varr_m))
+                data$residlog=(data$Q-data$fit)/sqrt(plotlist$varr_m)
                 rcleiflog=ggplot(data)+geom_point(aes(l_m,residlog),color="red")+theme_bw()+geom_abline(intercept = 0, slope = 0)+
                     geom_abline(intercept = 2, slope = 0,linetype="dashed")+geom_abline(intercept = -2, slope = 0,linetype="dashed")+ylim(-4,4)+
                     ylab(expression(epsilon[i]))+ggtitle("Residual plot (log scale)")+xlab(expression(log(W-hat(c))))+
@@ -328,7 +307,7 @@ shinyServer(function(input, output) {
             tafla=plotlist$qvdata
             tafla$W=0.01*tafla$W
             tafla$Q=as.numeric(format(round(exp(tafla$Q),1)))
-            tafla$Qfit=as.numeric(format(round(as.vector(exp(plotlist$fit)),3)))
+            tafla$Qfit=as.numeric(format(round(as.vector(exp(data$fit)),3)))
             tafla$lower=as.numeric(format(round(exp(data$lower),3)))
             tafla$upper=as.numeric(format(round(exp(data$upper),3)))
             names(tafla)=c("Date","Time","W","Q", "Q fit","Lower", "Upper")
