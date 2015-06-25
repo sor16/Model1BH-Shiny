@@ -85,11 +85,11 @@ shinyServer(function(input, output) {
                 data=data.frame(W=RC$w,Q=RC$y)
                 data$l_m=l_m
                 data$fit=RC$fit
-                
-                simdata=data.frame(l_m=seq(,max(data$l_m),length.out=1000))
-                c_hat=min(data$W)-exp(plotlist$t_m[1,]) 
-                simdata$Wfit = exp(simdata$l_m) + c_hat
+                simdata=data.frame(l_m=seq(min(data$l_m),max(data$l_m),length.out=1000))
+                c_hat=min(data$W)-exp(t_m[1,]) 
+                simdata$Wfit = exp(simdata$l_m)+c_hat
                 simdata$fit=mu[1,]+mu[2,]*simdata$l_m
+                #simdata$fitreal=exp(mu[1,])*(simdata$Wfit-c_hat)^mu[2,]
                 data$upper=RC$confinterval[,2]
                 data$lower=RC$confinterval[,1]
                 simdata$upper=simdata$fit+qnorm(0.975,0,sqrt(varappr))
@@ -97,9 +97,73 @@ shinyServer(function(input, output) {
                 
                 
                 
-                return(list("RC"=RC,"l_m"=l_m,"t_m"=t_m,"qvdata"=qvdata,"fit"=X_m%*%mu, "mu"=mu, "varappr"=varappr,"mu"=mu))
+                return(list("RC"=RC,"t_m"=t_m,"qvdata"=qvdata,"simdata"=simdata,"data"=data))
         
     })
+        }
+    })
+    
+    plotratingcurve1 <- eventReactive(input$go,{
+        plotlist=model1()
+        rclog=NULL
+        rcraun=NULL
+        rcleiflog=NULL
+        rcleifraun=NULL
+        tafla=NULL
+        outputlist=list()
+        if(!is.null(plotlist$qvdata)) {
+            data=plotlist$data
+            simdata=plotlist$simdata
+            
+            if ("raun" %in% input$checkbox){
+                rcraun=ggplot(simdata)+theme_bw()+geom_point(data=data,aes(exp(Q),W))+geom_line(aes(exp(fit),Wfit))+
+                    geom_line(aes(exp(lower),Wfit),linetype="dashed")+geom_line(aes(exp(upper),Wfit),linetype="dashed")+
+                    ggtitle(paste("Rating curve for",input$name))+ylab("W  [m]")+xlab(expression(paste("Q  [",m^3,'/s]',sep='')))+
+                    theme(plot.title = element_text(vjust=2))
+                outputlist$rcraun=rcraun
+            }
+            if("log" %in% input$checkbox){
+                rclog=ggplot(simdata)+geom_line(mapping=aes(fit,l_m))+theme_bw()+geom_point(data=data,mapping=aes(Q,l_m))+geom_line(mapping=aes(lower,l_m),linetype="dashed")+
+                    geom_line(mapping=aes(upper,l_m),linetype="dashed")+ggtitle(paste("Rating curve for",input$name,"(log scale)"))+
+                    ylab(expression(log(W-hat(c))))+xlab("log(Q)")+theme(plot.title = element_text(vjust=2))
+                
+                outputlist$rclog=rclog
+            }
+            
+            
+            if ("leifraun" %in% input$checkbox){
+                data$residraun=(exp(data$Q)-exp(data$fit))
+                simdata$residupper=exp(simdata$upper)-exp(simdata$fit)
+                simdata$residlower=exp(simdata$lower)-exp(simdata$fit)
+                rcleifraun=ggplot(simdata)+geom_point(data=data,aes(W,residraun),color="red")+theme_bw()+geom_abline(intercept = 0, slope = 0)+
+                    geom_line(aes(Wfit,residupper),linetype="dashed")+geom_line(aes(Wfit,residlower),linetype="dashed")+ylab(expression(paste("Q - ",hat(Q) ,"  [",m^3,'/s]',sep='')))+
+                    ggtitle("Residual plot")+xlab("W  [m]")+theme(plot.title = element_text(vjust=2))
+                
+                outputlist$rcleifraun=rcleifraun
+            } 
+            if("leiflog" %in% input$checkbox){
+                data$residlog=(data$Q-data$fit)/sqrt(exp(plotlist$t_m[2,]))
+                rcleiflog=ggplot(data)+geom_point(aes(l_m,residlog),color="red")+theme_bw()+geom_abline(intercept = 0, slope = 0)+
+                    geom_abline(intercept = 2, slope = 0,linetype="dashed")+geom_abline(intercept = -2, slope = 0,linetype="dashed")+ylim(-4,4)+
+                    ylab(expression(epsilon[i]))+ggtitle("Residual plot (log scale)")+xlab(expression(log(W-hat(c))))+
+                    theme(plot.title = element_text(vjust=2))
+                
+                
+                outputlist$rcleiflog=rcleiflog
+            }
+            
+            tafla=plotlist$qvdata
+            tafla$W=0.01*tafla$W
+            tafla$Q=tafla$Q
+            tafla$Qfit=as.numeric(format(round(as.vector(exp(data$fit)),3)))
+            tafla$lower=as.numeric(format(round(exp(data$lower),3)))
+            tafla$upper=as.numeric(format(round(exp(data$upper),3)))
+            tafla$diffQ=tafla$Q-tafla$Qfit
+            names(tafla)=c("Date","Time","W","Q", "Q fit","Lower", "Upper","Q diff")
+            outputlist$tafla=tafla
+            
+            
+            return(outputlist)
         }
     })
     
@@ -175,6 +239,7 @@ shinyServer(function(input, output) {
                 
                 
                 for(j in 1:4){
+                    incProgress(1/4, detail = paste("Calculating MCMC chain nr.", j))
                     t_old=t_m
                     t=matrix(0,nrow=9,ncol=Nit)
                     x=matrix(0,nrow=xsiz,ncol=Nit)
@@ -327,7 +392,8 @@ shinyServer(function(input, output) {
             tafla$Qfit=as.numeric(format(round(as.vector(exp(data$fit)),3)))
             tafla$lower=as.numeric(format(round(exp(data$lower),3)))
             tafla$upper=as.numeric(format(round(exp(data$upper),3)))
-            names(tafla)=c("Date","Time","W","Q", "Q fit","Lower", "Upper")
+            tafla$diffQ=tafla$Q-tafla$Qfit
+            names(tafla)=c("Date","Time","W","Q", "Q fit","Lower", "Upper","Q diff")
             outputlist$tafla=tafla
             
             
@@ -338,66 +404,7 @@ shinyServer(function(input, output) {
 #Model1        
         
     })
-    plotratingcurve1 <- eventReactive(input$go,{
-        plotlist=model1()
-        rclog=NULL
-        rcraun=NULL
-        rcleiflog=NULL
-        rcleifraun=NULL
-        tafla=NULL
-        outputlist=list()
-        if(!is.null(plotlist$qvdata)) {
-            
-        if ("raun" %in% input$checkbox){
-            rcraun=ggplot(simdata)+theme_bw()+geom_point(data=data,aes(exp(Q),W))+geom_line(aes(exp(fit),Wfit))+
-                geom_line(aes(exp(lower),Wfit),linetype="dashed")+geom_line(aes(exp(upper),Wfit),linetype="dashed")+
-                ggtitle(paste("Rating curve for",input$name))+ylab("W  [m]")+xlab(expression(paste("Q  [",m^3,'/s]',sep='')))+
-                theme(plot.title = element_text(vjust=2))
-            outputlist$rcraun=rcraun
-        }
-        if("log" %in% input$checkbox){
-            rclog=ggplot(simdata)+geom_line(mapping=aes(fit,l_m))+theme_bw()+geom_point(data=data,mapping=aes(Q,l_m))+geom_line(mapping=aes(lower,l_m),linetype="dashed")+
-                geom_line(mapping=aes(upper,l_m),linetype="dashed")+ggtitle(paste("Rating curve for",input$name,"(log scale)"))+
-                ylab(expression(log(W-hat(c))))+xlab("log(Q)")+theme(plot.title = element_text(vjust=2))
-            
-            outputlist$rclog=rclog
-        }
-        
-        
-        if ("leifraun" %in% input$checkbox){
-            data$residraun=(exp(data$Q)-exp(data$fit))
-            simdata$residupper=exp(simdata$upper)-exp(simdata$fit)
-            simdata$residlower=exp(simdata$lower)-exp(simdata$fit)
-            rcleifraun=ggplot(simdata)+geom_point(data=data,aes(W,residraun),color="red")+theme_bw()+geom_abline(intercept = 0, slope = 0)+
-                geom_line(aes(Wfit,residupper),linetype="dashed")+geom_line(aes(Wfit,residlower),linetype="dashed")+ylab(expression(paste("Q - ",hat(Q) ,"  [",m^3,'/s]',sep='')))+
-                ggtitle("Residual plot")+xlab("W  [m]")+theme(plot.title = element_text(vjust=2))
-            
-            outputlist$rcleifraun=rcleifraun
-        } 
-        if("leiflog" %in% input$checkbox){
-            data$residlog=(data$Q-data$fit)/sqrt(exp(plotlist$t_m[2,]))
-            rcleiflog=ggplot(data)+geom_point(aes(l_m,residlog),color="red")+theme_bw()+geom_abline(intercept = 0, slope = 0)+
-                geom_abline(intercept = 2, slope = 0,linetype="dashed")+geom_abline(intercept = -2, slope = 0,linetype="dashed")+ylim(-4,4)+
-                ylab(expression(epsilon[i]))+ggtitle("Residual plot (log scale)")+xlab(expression(log(W-hat(c))))+
-                theme(plot.title = element_text(vjust=2))
-            
-            
-            outputlist$rcleiflog=rcleiflog
-        }
-        
-        tafla=plotlist$qvdata
-        tafla$W=0.01*tafla$W
-        tafla$Q=tafla$Q
-        tafla$Qfit=as.numeric(format(round(as.vector(exp(plotlist$fit)),3)))
-        tafla$lower=as.numeric(format(round(exp(data$lower),3)))
-        tafla$upper=as.numeric(format(round(exp(data$upper),3)))
-        names(tafla)=c("Date","Time","W","Q", "Q fit","Lower", "Upper")
-        outputlist$tafla=tafla
-        
-        
-        return(outputlist)
-        }
-})
+
 
     output$callreactive <- renderPrint({
         plotlist=model1()
