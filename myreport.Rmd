@@ -20,11 +20,11 @@ varappr=mean(plotlist$varappr)
 predict=1.96*sqrt(varappr)
 ```
 
-Formula for rating curve: $$\ Q(W) = `r a` \cdot (W - `r c_hat` )^{ `r b`}$$
+Formula for rating curve: $$\ hat{Q}(W) = `r a` \cdot (W - `r c_hat` )^{ `r b`}$$
     
-Formula for upper predictive: $$\ Q_{upper}(W) = `r a` \cdot (W - `r c_hat` )^{ `r b`} \cdot `r exp(predict)`$$
+Formula for upper predictive: $$\ hat{Q}_{upper}(W) = `r a` \cdot (W - `r c_hat` )^{ `r b`} \cdot `r exp(predict)`$$
 
-Formula for lower predictive: $$\ Q_{lower}(W) = `r a` \cdot (W - `r c_hat` )^{ `r b`} \cdot `r exp(-predict)`$$
+Formula for lower predictive: $$\ hat{Q}_{lower}(W) = hat{Q} \cdot 1.96 \cdot \sigma_{\epsilon} = hat{Q} \cdot 1.96 \cdot  `r exp(t_m[2,])`=hat{Q} \cdot `r exp(-predict)`$$
 
 ```{r results='asis',echo=FALSE}
 stargazer(plotratingcurve1()$tafla,type="latex",summary=FALSE, title=input$name,header=FALSE,digits=3,digits.extra=3)
