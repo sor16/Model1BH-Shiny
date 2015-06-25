@@ -97,7 +97,7 @@ shinyServer(function(input, output) {
                 
                 
                 
-                return(list("RC"=RC,"t_m"=t_m,"qvdata"=qvdata,"simdata"=simdata,"data"=data))
+                return(list("RC"=RC,"varappr"=varappr,"t_m"=t_m,"qvdata"=qvdata,"simdata"=simdata,"data"=data,"mu"=mu))
         
     })
         }
