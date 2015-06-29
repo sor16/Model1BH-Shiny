@@ -106,7 +106,11 @@ shinyServer(function(input, output) {
     })
     ranges <- reactiveValues(x = NULL, y = NULL)
     
-    plotratingcurve1 <- eventReactive(input$go,{
+    output$zoom=renderPrint({
+      list(ranges$x,ranges$y,input$plot1_brush,str(input$plot1_dblclick))
+    })
+    
+    plotratingcurve1 <- reactive({
         plotlist=model1()
         rclog=NULL
         rcraun=NULL
@@ -423,21 +427,26 @@ shinyServer(function(input, output) {
       if(length(plotratingcurve1())!=0){
         plot_output_list <- lapply(1:(length(plotratingcurve1())-1), function(i) {
           plotname=paste("plot", i, sep="")
-          plotOutput(plotname)
+          hovername=paste("plot",i,"_hover",sep="")
+          clickname=paste("plot",i,"_dbclick",sep="")
+          brushname=paste("plot",i,"_brush",sep="")
+          plotOutput(plotname,hover = hoverOpts(id = hovername ),dblclick = dblclickOpts(
+          id = clickname),brush = brushOpts(id = brushname,resetOnNew = TRUE))
         })
-        plot_output_list[[1]]=plotOutput('plot1',hover = hoverOpts(id = "plot_hover"),dblclick = "plot1_dblclick",
-                                         brush = brushOpts(
-                                           id = "plot1_brush",
-                                           resetOnNew = TRUE))
         
         do.call(tagList, plot_output_list)
       }
     })
+    
+    # When a double-click happens, check if there's a brush on the plot.
+    # If so, zoom to the brush bounds; if not, reset the zoom.
+
+    
     output$hover_info <- renderPrint({
       data=model1()$qvdata
       data$W=data$W*0.01
-      if(!is.null(input$plot_hover)){
-        hover=input$plot_hover
+      if(!is.null(input$plot1_hover)){
+        hover=input$plot1_hover
         dist=sqrt((hover$x-data$Q)^2+(hover$y-data$W)^2)
         cat("Measurement:\n")
         if(min(dist) < 0.3)
@@ -447,8 +456,6 @@ shinyServer(function(input, output) {
       
     },width=100)
     
-    # When a double-click happens, check if there's a brush on the plot.
-    # If so, zoom to the brush bounds; if not, reset the zoom.
     observeEvent(input$plot1_dblclick, {
       brush <- input$plot1_brush
       if (!is.null(brush)) {
@@ -461,6 +468,7 @@ shinyServer(function(input, output) {
       }
     })
     
+
     output$plot1<-renderPlot({
         if(length(plotratingcurve1())!=0)
             plotratingcurve1()[[1]]
@@ -488,6 +496,8 @@ shinyServer(function(input, output) {
                 
         }
     })
+    
+
 
 
 #Model2
