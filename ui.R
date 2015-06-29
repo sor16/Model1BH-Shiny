@@ -12,7 +12,11 @@ shinyUI(fluidPage(
             fileInput('file1', 'Choose file'),
             checkboxGroupInput("checkbox", label = "Output",choices=list("Real scale"="raun","Logarithmic scale"="log",
                                                                          "Real scale residuals"="leifraun","Standardized residuals"="leiflog") ,selected = NULL),
-           
+            br(),
+            checkboxInput("checkboxA", label="Advanced settings", value=FALSE),
+            br(),
+            conditionalPanel(condition="input.checkboxA == true",   sliderInput("slider2", label = "Date Range", min = 0, max = 100, value = c(0, 100))
+            ),
             br(),
             checkboxGroupInput("checkbox2", label = "Models",choices=list("Model1"='mdl1', "Model2"='mdl2'), inline=TRUE),
             actionButton("go", label="Submit"),
