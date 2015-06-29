@@ -15,8 +15,8 @@ shinyUI(fluidPage(
             br(),
             checkboxInput("checkboxA", label="Advanced settings", value=FALSE),
             br(),
-            conditionalPanel(condition="input.checkboxA == true",   sliderInput("slider2", label = "Date Range", min = 0, max = 100, value = c(0, 100))
-            ),
+            conditionalPanel(condition="input.checkboxA == true",   sliderInput("slider2", label = "Date Range", min = 1950, max = as.numeric(format(Sys.Date(), "%Y")), 
+                                                                                value=c(1950,as.numeric(format(Sys.Date(), "%Y"))))),
             br(),
             checkboxGroupInput("checkbox2", label = "Models",choices=list("Model1"='mdl1', "Model2"='mdl2'), inline=TRUE),
             actionButton("go", label="Submit"),
