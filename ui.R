@@ -14,7 +14,7 @@ shinyUI(fluidPage(
                                                                          "Real scale residuals"="leifraun","Standardized residuals"="leiflog") ,selected = NULL),
            
             br(),
-            checkboxGroupInput("checkbox2", label = "Models",choices=list("Model 1"= "mdl1", "Model 2"="mdl2"), inline=TRUE),
+            checkboxGroupInput("checkbox2", label = "Models",choices=list("Model1"='mdl1', "Model2"='mdl2'), inline=TRUE),
             actionButton("go", label="Submit"),
             br(),
             br(),
@@ -26,25 +26,16 @@ shinyUI(fluidPage(
         mainPanel(
             
         textOutput('callreactive'),
-            tabsetPanel(
-                id = 'dataset',
-                
-                #conditionalPanel(condition= "output.plots != NULL",
-                                   
-                tabPanel('Plots',  uiOutput('plots')),
-                       
-                tabPanel('Numeric summary', uiOutput('tafla')),
-              # ),
-                
-                #conditionalPanel(condition= "input.checkbox2 == mdl2",
-                               
-                               tabPanel('Plots2',  uiOutput('plots2')),
-                               
-                               tabPanel('Numeric summary 2', uiOutput('tafla2'))
-                #)
-                
-                
-            ),
+     
+        tabsetPanel(
+            id = 'dataset',
+            
+        tabPanel('Plots',  uiOutput('plots')),
+        tabPanel('Numeric summary', uiOutput('tafla')),
+        tabPanel('Plots2',  uiOutput('plots2')),
+        tabPanel('Numeric summary 2', uiOutput('tafla2'))
+        
+        ),
         tagList(
             tags$head(
                 tags$link(rel="stylesheet", type="text/css",href="style.css"),
