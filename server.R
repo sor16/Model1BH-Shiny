@@ -21,10 +21,11 @@ shinyServer(function(input, output) {
             names(qvdata)=c("Date","Time","W","Q")
             qvdata$Time=as.character(qvdata$Time)
             qvdata$Date=as.Date(gsub("\\.","-",qvdata$Date),"%d-%m-%Y")
-#             if(input$checkboxA==TRUE){
-#                 qvdata[order(as.Date(qvdata$Date, format="%d/%m/%Y")),]
-#                 
-#             }
+            if(input$checkboxA==TRUE){
+                years=as.numeric(format(qvdata$Date, "%Y"))
+                qvdata=qvdata[which(years<=input$slider[2] & years >= input$slider[1]),]
+                 
+             }
             qvdata=qvdata[with(qvdata,order(W)),]
             wq=as.matrix(qvdata[,3:4])
       
