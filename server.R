@@ -112,10 +112,6 @@ shinyServer(function(input, output) {
     })
     ranges <- reactiveValues(x = NULL, y = NULL)
     
-    output$zoom=renderPrint({
-      list(ranges$x,ranges$y,input$plot1_brush,str(input$plot1_dblclick))
-    })
-    
     plotratingcurve1 <- reactive({
         plotlist=model1()
         rclog=NULL
@@ -434,7 +430,7 @@ shinyServer(function(input, output) {
         plot_output_list <- lapply(1:(length(plotratingcurve1())-1), function(i) {
           plotname=paste("plot", i, sep="")
           hovername=paste("plot",i,"_hover",sep="")
-          clickname=paste("plot",i,"_dbclick",sep="")
+          clickname=paste("plot",i,"_dblclick",sep="")
           brushname=paste("plot",i,"_brush",sep="")
           plotOutput(plotname,hover = hoverOpts(id = hovername ),dblclick = dblclickOpts(
           id = clickname),brush = brushOpts(id = brushname,resetOnNew = TRUE))
