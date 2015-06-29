@@ -30,7 +30,7 @@ shinyUI(fluidPage(
         tabsetPanel(
             id = 'dataset',
             
-        tabPanel('Plots',  uiOutput('plots')),
+        tabPanel('Plots',uiOutput('plots'),verbatimTextOutput('hover_info')),
         tabPanel('Numeric summary', uiOutput('tafla')),
         tabPanel('Plots2',  uiOutput('plots2')),
         tabPanel('Numeric summary 2', uiOutput('tafla2'))

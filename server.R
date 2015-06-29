@@ -104,6 +104,7 @@ shinyServer(function(input, output) {
             }
         }
     })
+    ranges <- reactiveValues(x = NULL, y = NULL)
     
     plotratingcurve1 <- eventReactive(input$go,{
         plotlist=model1()
@@ -121,7 +122,7 @@ shinyServer(function(input, output) {
                 rcraun=ggplot(simdata)+theme_bw()+geom_point(data=data,aes(exp(Q),W))+geom_line(aes(exp(fit),Wfit))+
                     geom_line(aes(exp(lower),Wfit),linetype="dashed")+geom_line(aes(exp(upper),Wfit),linetype="dashed")+
                     ggtitle(paste("Rating curve for",input$name))+ylab("W  [m]")+xlab(expression(paste("Q  [",m^3,'/s]',sep='')))+
-                    theme(plot.title = element_text(vjust=2))
+                    theme(plot.title = element_text(vjust=2))+coord_cartesian(xlim = ranges$x, ylim = ranges$y)
                 outputlist$rcraun=rcraun
             }
             if("log" %in% input$checkbox){
@@ -419,14 +420,45 @@ shinyServer(function(input, output) {
 
     
     output$plots <- renderUI({
-        if(length(plotratingcurve1())!=0){
-            plot_output_list <- lapply(1:(length(plotratingcurve1())-1), function(i) {
-                plotname=paste("plot", i, sep="")
-                plotOutput(plotname)
-            })
-            
-            do.call(tagList, plot_output_list)
-        }
+      if(length(plotratingcurve1())!=0){
+        plot_output_list <- lapply(1:(length(plotratingcurve1())-1), function(i) {
+          plotname=paste("plot", i, sep="")
+          plotOutput(plotname)
+        })
+        plot_output_list[[1]]=plotOutput('plot1',hover = hoverOpts(id = "plot_hover"),dblclick = "plot1_dblclick",
+                                         brush = brushOpts(
+                                           id = "plot1_brush",
+                                           resetOnNew = TRUE))
+        
+        do.call(tagList, plot_output_list)
+      }
+    })
+    output$hover_info <- renderPrint({
+      data=model1()$qvdata
+      data$W=data$W*0.01
+      if(!is.null(input$plot_hover)){
+        hover=input$plot_hover
+        dist=sqrt((hover$x-data$Q)^2+(hover$y-data$W)^2)
+        cat("Measurement:\n")
+        if(min(dist) < 0.3)
+          data[which.min(dist),]
+      }
+      
+      
+    },width=100)
+    
+    # When a double-click happens, check if there's a brush on the plot.
+    # If so, zoom to the brush bounds; if not, reset the zoom.
+    observeEvent(input$plot1_dblclick, {
+      brush <- input$plot1_brush
+      if (!is.null(brush)) {
+        ranges$x <- c(brush$xmin, brush$xmax)
+        ranges$y <- c(brush$ymin, brush$ymax)
+        
+      } else {
+        ranges$x <- NULL
+        ranges$y <- NULL
+      }
     })
     
     output$plot1<-renderPlot({
