@@ -28,6 +28,7 @@ shinyServer(function(input, output) {
              }
             qvdata=qvdata[with(qvdata,order(W)),]
             wq=as.matrix(qvdata[,3:4])
+            
       
             
         }
@@ -169,6 +170,7 @@ shinyServer(function(input, output) {
             tafla$upper=as.numeric(format(round(exp(data$upper),3)))
             tafla$diffQ=tafla$Q-tafla$Qfit
             names(tafla)=c("Date","Time","W","Q", "Q fit","Lower", "Upper","Q diff")
+            tafla=tafla[with(tafla,order(Date)),]
             outputlist$tafla=tafla
             
             
@@ -405,6 +407,7 @@ shinyServer(function(input, output) {
             tafla$upper=as.numeric(format(round(exp(data$upper),3)))
             tafla$diffQ=tafla$Q-tafla$Qfit
             names(tafla)=c("Date","Time","W","Q", "Q fit","Lower", "Upper","Q diff")
+            tafla=tafla[with(tafla,order(Date)),]
             outputlist$tafla=tafla
             
             
@@ -488,15 +491,13 @@ shinyServer(function(input, output) {
             plotratingcurve1()[[4]]     
     },height=400,width=600)
     output$tafla <- renderGvis({
-       if(!is.null(plotratingcurve1()$tafla)){
+       #if(!is.null(plotratingcurve1()$tafla)){
             table=as.data.frame(plotratingcurve1()$tafla)
             gvisTable(table,options=list(
                 page='enable',
                 pageSize=30,
                 width=550
             ))
-                
-        }
     })
     
 
@@ -532,7 +533,7 @@ output$plot8<-renderPlot({
         plotratingcurve2()[[4]]     
 },height=400,width=600)
 output$tafla2 <- renderGvis({
-    if(!is.null(plotratingcurve2()$tafla)){
+    #if(!is.null(plotratingcurve2()$tafla)){
         table=as.data.frame(plotratingcurve2()$tafla)
         gvisTable(table,options=list(
             page='enable',
@@ -540,7 +541,7 @@ output$tafla2 <- renderGvis({
             width=550
         ))
         
-    }
+    
 })
 
     output$downloadReport <- downloadHandler(
