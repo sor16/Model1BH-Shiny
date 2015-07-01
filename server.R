@@ -237,104 +237,43 @@ shinyServer(function(input, output) {
                     mu=RC$mu_x-Sig_x%*%(t(X)%*%(solve(t(L),w)))
                     LH=t(chol(H))/0.8
                     
-                    t1=matrix(0,9,Nit)
-                    t2=matrix(0,9,Nit)
-                    t3=matrix(0,9,Nit)
-                    t4=matrix(0,9,Nit)
-                    xsiz=max(dim(mu))
-                    x1=matrix(0,xsiz,Nit)
-                    x2=matrix(0,xsiz,Nit)
-                    x3=matrix(0,xsiz,Nit)
-                    x4=matrix(0,xsiz,Nit)
+                    cl <- makeCluster(4)
+                    # Register cluster
+                    registerDoParallel(cl)
+                    #Find out how many
                     
-                    
-                    for(j in 1:4){
-                        incProgress(1/4, detail = paste("Calculating MCMC chain nr.", j))
-                        t_old=t_m
-                        t=matrix(0,nrow=9,ncol=Nit)
-                        x=matrix(0,nrow=xsiz,ncol=Nit)
-                        yp=matrix(0,nrow=RC$N,ncol=Nit)
-                        ypo=matrix(0,nrow=RC$N,ncol=Nit)
-                        varr=matrix(0,nrow=RC$N,ncol=Nit)
-                        D=matrix(0,nrow=1,ncol=Nit)
+                    MCMC <- foreach(i=1:4, .combine=cbind,.export=c("Densevalm22")) %dopar% {
+                      ypo=matrix(0,nrow=nrow(wq)+9,ncol=Nit)
+                      
+                      t_old=as.matrix(t_m)
+                      Dens<-Densevalm22(t_old,RC)
+                      p_old=Dens$p
+                      ypo_old=Dens$ypo
+                      
+                      for(j in 1:Nit){
+                        t_new=t_old+solve(t(LH),rnorm(9,0,1))
+                        Densnew<-Densevalm22(t_new,RC)
+                        ypo_new=Densnew$ypo
+                        p_new=Densnew$p
+                        logR=p_new-p_old
                         
-                        
-                        
-                        Dens<-Densevalm22(t_old,RC)
-                        p_old=Dens$p
-                        x_old=Dens$x
-                        yp_old=Dens$yp
-                        ypo_old=Dens$ypo
-                        D_old=Dens$D
-                        varr_old=Dens$varr
-                        
-                        for(i in 1:Nit){
-                            t_new=t_old+solve(t(LH),as.matrix(rnorm(9,0,1)))
-                            
-                            Densnew<-Densevalm22(t_new,RC)
-                            p_new=Densnew$p
-                            x_new=Densnew$x
-                            yp_new=Densnew$yp
-                            ypo_new=Densnew$ypo
-                            D_new=Densnew$D
-                            varr_new=Densnew$varr
-                            
-                            logR=p_new-p_old
-                            
-                            if (logR>log(runif(1))){
-                                t_old=t_new
-                                x_old=x_new
-                                p_old=p_new
-                                yp_old=yp_new
-                                ypo_old=ypo_new
-                                D_old=D_new
-                                varr_old=varr_new
-                            }
-                            
-                            t[,i]=t_old
-                            yp[,i]=yp_old
-                            ypo[,i]=ypo_old
-                            
-                            D[1,i]=D_old
-                            varr[,i]=varr_old
+                        if (logR>log(runif(1))){
+                          t_old=t_new
+                          p_old=p_new
+                          ypo_old=ypo_new
+                          
                         }
-                        
-                        if(j==1){
-                            t1=t
-                            yp1=yp
-                            ypo1=ypo
-                            D1=D
-                            varr1=varr
-                        } else if(j==2){
-                            t2=t
-                            yp2=yp
-                            ypo2=ypo
-                            D2=D
-                            varr2=varr
-                        } else if(j==3){
-                            t3=t
-                            yp3=yp
-                            ypo3=ypo
-                            D3=D
-                            varr3=varr
-                        } else if(j==4){
-                            t4=t
-                            yp4=yp
-                            ypo4=ypo
-                            D4=D
-                            varr4=varr
-                        }
+                        ypo[,j]=rbind(ypo_old,t_old)
+                      }
+                      
+                      seq=seq(2000,Nit,5)
+                      ypo=ypo[,seq]
+                      
+                      return(ypo)
                     }
-                    
-                
-            
-                seq=seq(2000,20000,5)
-                quantypo1=ypo1[,seq]
-                quantypo2=ypo2[,seq]
-                quantypo3=ypo3[,seq]
-                quantypo4=ypo4[,seq]
-                quantmatrix=t(cbind(quantypo1,quantypo2,quantypo3,quantypo4))
-                return(list("RC"=RC,"l"=l,"t_m"=t_m,"varr_m"=varr_m,"qvdata"=qvdata,"quantmatrix"=quantmatrix ))
+                    quantmatrix=head(MCMC,nrow(MCMC)-9)
+                    t=tail(MCMC,9)
+                return(list("RC"=RC,"l"=l,"t_m"=t_m,"varr_m"=varr_m,"qvdata"=qvdata,"quantmatrix"=quantmatrix,"t"=t))
                 })
             }
         }
@@ -354,7 +293,7 @@ shinyServer(function(input, output) {
             data$l_m=plotlist$l
             data$c_hat=rep(min(data$W)-exp(plotlist$t_m[1]),length(data$l_m))
             
-            prctile=t(apply(plotlist$quantmatrix, 2, quantile, probs = c(0.025,0.5, 0.975),  na.rm = TRUE))
+            prctile=t(apply(plotlist$quantmatrix, 1, quantile, probs = c(0.025,0.5, 0.975),  na.rm = TRUE))
             data$lower=prctile[,1]
             data$fit=prctile[,2]
             data$upper=prctile[,3]
