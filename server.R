@@ -60,7 +60,7 @@ shinyServer(function(input, output) {
                 wq=data()$wq
                 qvdata=data()$qvdata
                 withProgress(message = 'Making plot', value = 0, {
-                    RC=priors(input$select)
+                    RC=priors("Iceland")
                     
                     RC$y=as.matrix(log(wq[,2]));
                     RC$w=0.01*wq[,1]; #to meters 
